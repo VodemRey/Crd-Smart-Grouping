@@ -34,16 +34,16 @@ def get_files(base_path):
     return input_file[0], key_value_file[0]
 
 
-def read_files(input_file, key_values_file):
+def read_files(input_file_path, key_values_file_path):
     """Read input and key value files into pandas DataFrames."""
-    if input_file.suffix.lower() == ".csv":
-        input_df = pd.read_csv(input_file)
+    if input_file_path.suffix.lower() == ".csv":
+        input_df = pd.read_csv(input_file_path)
     else:
-        input_df = pd.read_excel(input_file)
+        input_df = pd.read_excel(input_file_path)
 
-    if key_values_file.suffix.lower() == ".csv":
-        key_values_df = pd.read_csv(key_values_file)
+    if key_values_file_path.suffix.lower() == ".csv":
+        key_values_df = pd.read_csv(key_values_file_path)
     else:
-        key_values_df = pd.read_excel(key_values_file)
+        key_values_df = pd.read_excel(key_values_file_path)
 
     return input_df, key_values_df
