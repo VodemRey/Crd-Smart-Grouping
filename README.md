@@ -91,6 +91,7 @@ Pipeline
 
 Project structure
 
+```text
 Crd-Smart-Grouping/
 ├─ data/
 │  └─ input/
@@ -111,3 +112,5 @@ Crd-Smart-Grouping/
 │
 ├─ README.md                │ project description and usage
 └─ requirements.txt         │ python dependencies
+```
+
