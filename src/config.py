@@ -14,5 +14,13 @@ class Config:
     ]
 
     ENTRY_FILE_REQUIRED_COLUMNS = [
-        "item Type"
+        "Amount",
+        "Reference data",
+        "Currency"
+    ]
+
+    ENTRY_FILE_OPTIONAL_COLUMNS = [
+        "Item Type",
+        "Fund name",
+        "Reconciliation group"
     ]

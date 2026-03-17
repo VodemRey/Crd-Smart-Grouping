@@ -1,6 +1,7 @@
 CRD REC SMART GROUPING
 
 Overview
+
 CRD REC Smart Grouping is a standalone Python project based on the workflow of the CRD Rec Smart Grouping agent.
 It is structured as a code-based implementation of the existing processing logic instead of keeping that logic only inside prompts.
 The project serves as a technical implementation of the Smart Grouping workflow in a simpler and more transparent form.
