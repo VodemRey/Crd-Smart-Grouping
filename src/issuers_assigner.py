@@ -4,18 +4,15 @@ Matches issuer keys against ``gr_reference_data`` and appends assignment columns
 """
 
 import pandas as pd
+from validators import validate_keys_required_columns, validate_required_columns
 
 
 def assign_issuers(normalized_df, keys_df):
     """Assign issuer and matched keys for each normalized entry row."""
-    if "gr_reference_data" not in normalized_df.columns:
-        raise ValueError("Normalized data must contain 'gr_reference_data' column")
-
-    required_keys_columns = {"issuer_name", "key"}
-    missing_keys_columns = required_keys_columns.difference(keys_df.columns)
-    if missing_keys_columns:
-        missing_columns_str = ", ".join(sorted(missing_keys_columns))
-        raise ValueError(f"Keys data is missing required columns: {missing_columns_str}")
+    validate_required_columns(
+        normalized_df, ["gr_reference_data"], "Normalized data"
+    )
+    validate_keys_required_columns(keys_df)
 
     issuers_assigned_df = normalized_df.copy()
 

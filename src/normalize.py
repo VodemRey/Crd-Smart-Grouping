@@ -1,19 +1,22 @@
 """Normalize input data into canonical grouping columns."""
 
 from profiles import PROFILES
+from validators import (
+    validate_keys_required_columns,
+    validate_profile_name,
+    validate_unique_canonical_targets,
+)
 
 
 def data_normalize(entry_df, keys_df, profile_name):
     """Normalize entry data and keys reference data for downstream matching."""
-    if profile_name not in PROFILES:
-        raise ValueError(f"Unknown profile: {profile_name}")
+    validate_profile_name(profile_name, PROFILES)
 
     normalized_df = entry_df.copy()
     normalized_keys_df = keys_df.copy()
     column_mapping = PROFILES[profile_name]["column_mapping"]
 
-    if "key" not in normalized_keys_df.columns:
-        raise ValueError("Keys file must contain 'key' column")
+    validate_keys_required_columns(normalized_keys_df)
 
     normalized_keys_df["key"] = (
         normalized_keys_df["key"]
@@ -35,13 +38,7 @@ def data_normalize(entry_df, keys_df, profile_name):
         if source_col in normalized_df.columns and target_col != "gr_reference_data"
     }
 
-    targets = list(add_mapping.values())
-    duplicate_targets = {target for target in targets if targets.count(target) > 1}
-    if duplicate_targets:
-        duplicates_str = ", ".join(sorted(duplicate_targets))
-        raise ValueError(
-            f"Profile mapping contains non-unique canonical targets: {duplicates_str}"
-        )
+    validate_unique_canonical_targets(add_mapping.values())
 
     added_columns = []
     for source_col, target_col in add_mapping.items():

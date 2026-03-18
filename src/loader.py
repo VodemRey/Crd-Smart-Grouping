@@ -1,8 +1,7 @@
 """Load and validate input datasets from project data folders."""
 
-from pathlib import Path
-
 import pandas as pd
+from validators import validate_exactly_one_file
 
 
 def get_files(base_path):
@@ -17,10 +16,7 @@ def get_files(base_path):
         if f.suffix.lower() in tabular_extensions and f.is_file():
             input_file.append(f)
 
-    if len(input_file) < 1:
-        raise ValueError("Input file is not found")
-    elif len(input_file) > 1:
-        raise ValueError("More than 1 input file were found")
+    validate_exactly_one_file(input_file, "Input file")
 
     for f in key_values_path.iterdir():
         if (
@@ -30,10 +26,7 @@ def get_files(base_path):
         ):
             key_value_file.append(f)
 
-    if len(key_value_file) < 1:
-        raise ValueError("Key values file is not found")
-    elif len(key_value_file) > 1:
-        raise ValueError("More than 1 key values file were found")
+    validate_exactly_one_file(key_value_file, "Key values file")
 
     return input_file[0], key_value_file[0]
 
