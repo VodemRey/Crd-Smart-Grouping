@@ -21,7 +21,23 @@ ITEMS_STATUS_PROFILE = {
     "reference_fields": ["reference_data"],
 }
 
+CRYSTAL_OPEN_ITEMS_PROFILE = {
+    "name": "Crystal Open Items",
+    "column_mapping": {
+        "Ref1": "reference_data",
+        "Ref2": "reference_data",
+        "Ref3": "reference_data",
+        "Ref4": "reference_data",
+        "Original ID" : "reference_data",
+        "Amount": "amount",
+        "Entry type": "item_type",
+        "Currency" : "currency",
+        "Set ID": "reconciliation_group",
+    },
+    "reference_fileds":["reference_data"],
+}
 
 PROFILES = {
     "items_status": ITEMS_STATUS_PROFILE,
+    "crystal_open_items": CRYSTAL_OPEN_ITEMS_PROFILE,
 }
