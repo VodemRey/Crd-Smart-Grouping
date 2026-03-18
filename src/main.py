@@ -15,8 +15,7 @@ def main():
 
     normalized_df = data_normalize(entry_df, profile_name)
 
-    for f in normalized_df.columns:
-        print("\n",f)
+    return normalized_df
 
 if __name__ == "__main__":
     print(main())
