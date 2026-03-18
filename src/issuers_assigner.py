@@ -1,6 +1,7 @@
+"""Issuer assignment step for normalized reconciliation data.
 
-
-"""Assign issuers based on key matches in normalized reference text."""
+Matches issuer keys against ``gr_reference_data`` and appends assignment columns.
+"""
 
 import pandas as pd
 
