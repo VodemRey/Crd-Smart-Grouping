@@ -9,32 +9,32 @@ column mappings and reference field definitions.
 ITEMS_STATUS_PROFILE = {
     "name": "Items Status",
     "column_mapping": {
-        "Item Reference 1": "reference_data",
-        "Item Reference 2": "reference_data",
-        "Item Reference 3": "reference_data",
-        "Item Reference 4": "reference_data",
-        "Item Amount": "amount",
-        "Currency": "currency",
-        "Item Type": "item_type",
-        "Reconciliation": "reconciliation_group",
+        "Item Reference 1": "gr_reference_data",
+        "Item Reference 2": "gr_reference_data",
+        "Item Reference 3": "gr_reference_data",
+        "Item Reference 4": "gr_reference_data",
+        "Item Amount": "gr_amount",
+        "Currency": "gr_currency",
+        "Item Type": "gr_item_type",
+        "Reconciliation": "gr_reconciliation_group",
     },
-    "reference_fields": ["reference_data"],
+    "reference_fields": ["gr_reference_data"],
 }
 
 CRYSTAL_OPEN_ITEMS_PROFILE = {
     "name": "Crystal Open Items",
     "column_mapping": {
-        "Ref1": "reference_data",
-        "Ref2": "reference_data",
-        "Ref3": "reference_data",
-        "Ref4": "reference_data",
-        "Original ID" : "reference_data",
-        "Amount": "amount",
-        "Entry type": "item_type",
-        "Currency" : "currency",
-        "Set ID": "reconciliation_group",
+        "Ref1": "gr_reference_data",
+        "Ref2": "gr_reference_data",
+        "Ref3": "gr_reference_data",
+        "Ref4": "gr_reference_data",
+        "Original ID": "gr_reference_data",
+        "Amount": "gr_amount",
+        "Entry type": "gr_item_type",
+        "Currency": "gr_currency",
+        "Set ID": "gr_reconciliation_group",
     },
-    "reference_fileds":["reference_data"],
+    "reference_fields": ["gr_reference_data"],
 }
 
 PROFILES = {

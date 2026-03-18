@@ -1,5 +1,8 @@
-import pandas as pd
+"""Load and validate input datasets from project data folders."""
+
 from pathlib import Path
+
+import pandas as pd
 
 
 def get_files(base_path):
@@ -8,9 +11,10 @@ def get_files(base_path):
     key_values_path = base_path / "data" / "static"
     input_file = []
     key_value_file = []
+    tabular_extensions = {".xlsx", ".xls", ".csv"}
 
     for f in input_folder_path.iterdir():
-        if f.suffix.lower() in [".xlsx", ".xls", ".csv"] and f.is_file():
+        if f.suffix.lower() in tabular_extensions and f.is_file():
             input_file.append(f)
 
     if len(input_file) < 1:
@@ -20,7 +24,7 @@ def get_files(base_path):
 
     for f in key_values_path.iterdir():
         if (
-            f.suffix.lower() in [".xlsx", ".xls", ".csv"]
+            f.suffix.lower() in tabular_extensions
             and f.is_file()
             and "key" in f.name.lower()
         ):
