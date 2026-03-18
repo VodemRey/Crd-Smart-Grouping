@@ -1,5 +1,5 @@
 import pandas as pd
-from .profiles import PROFILES
+from profiles import PROFILES
 
 def detect_profile(input_df):
 
