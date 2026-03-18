@@ -13,9 +13,9 @@ def main():
 
     profile_name = detect_profile(entry_df)
 
-    normalized_df = data_normalize(entry_df, profile_name)
+    normalized_df, normalized_keys_df = data_normalize(entry_df, keys_df, profile_name)
 
-    return normalized_df
+    return normalized_df.filter(regex="^gr_ref").head()
 
 if __name__ == "__main__":
     print(main())

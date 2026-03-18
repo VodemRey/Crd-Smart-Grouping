@@ -3,13 +3,25 @@
 from profiles import PROFILES
 
 
-def data_normalize(entry_df, profile_name):
-    """Add canonical gr_ columns and keep original source columns unchanged."""
+def data_normalize(entry_df, keys_df, profile_name):
+    """Normalize entry data and keys reference data for downstream matching."""
     if profile_name not in PROFILES:
         raise ValueError(f"Unknown profile: {profile_name}")
 
     normalized_df = entry_df.copy()
+    normalized_keys_df = keys_df.copy()
     column_mapping = PROFILES[profile_name]["column_mapping"]
+
+    if "key" not in normalized_keys_df.columns:
+        raise ValueError("Keys file must contain 'key' column")
+
+    normalized_keys_df["key"] = (
+        normalized_keys_df["key"]
+        .astype("string")
+        .str.strip()
+        .str.lower()
+        .str.replace(r"[^\w\s]|_", "", regex=True)
+    )
 
     reference_source_columns = [
         source_col
@@ -41,7 +53,7 @@ def data_normalize(entry_df, profile_name):
         reference_series = (
             entry_df[reference_source_columns]
             .astype("string")
-            .apply(lambda col: col.str.strip())
+            .apply(lambda col: col.str.strip().str.lower())
             .replace("", None)
             .apply(lambda row: " ".join(value for value in row.dropna()), axis=1)
         )
@@ -60,4 +72,4 @@ def data_normalize(entry_df, profile_name):
         ]
         normalized_df = normalized_df[unique_added_columns + original_columns]
 
-    return normalized_df
+    return normalized_df, normalized_keys_df
