@@ -101,6 +101,10 @@ def _run_pair_exact(df, segment_indexes, context, pass_config, next_group_number
 		idx for idx in _get_unassigned_in_segment(df, segment_indexes)
 		if not pd.isna(df.at[idx, cents_col])
 	]
+	unassigned = sorted(
+		unassigned,
+		key=lambda idx: (-abs(int(df.at[idx, cents_col])), idx),
+	)
 	if len(unassigned) < 2:
 		return _make_pass_result(pass_config, df, next_group_number, 0, 0, len(segment_indexes))
 
@@ -150,6 +154,10 @@ def _run_triple_balanced(df, segment_indexes, context, pass_config, next_group_n
 		idx for idx in _get_unassigned_in_segment(df, segment_indexes)
 		if not pd.isna(df.at[idx, cents_col])
 	]
+	unassigned = sorted(
+		unassigned,
+		key=lambda idx: (-abs(int(df.at[idx, cents_col])), idx),
+	)
 	if len(unassigned) < 3:
 		return _make_pass_result(pass_config, df, next_group_number, 0, 0, len(segment_indexes))
 
@@ -218,6 +226,10 @@ def _run_combo_4_5(df, segment_indexes, context, pass_config, next_group_number,
 		idx for idx in _get_unassigned_in_segment(df, segment_indexes)
 		if not pd.isna(df.at[idx, cents_col])
 	]
+	unassigned4 = sorted(
+		unassigned4,
+		key=lambda idx: (-abs(int(df.at[idx, cents_col])), idx),
+	)
 	if 4 <= len(unassigned4) <= _COMBO_4_MAX_SEGMENT:
 		pair_sums4 = {}
 		for i, idx_a in enumerate(unassigned4):
@@ -271,6 +283,10 @@ def _run_combo_4_5(df, segment_indexes, context, pass_config, next_group_number,
 		idx for idx in _get_unassigned_in_segment(df, segment_indexes)
 		if not pd.isna(df.at[idx, cents_col])
 	]
+	unassigned5 = sorted(
+		unassigned5,
+		key=lambda idx: (-abs(int(df.at[idx, cents_col])), idx),
+	)
 	if 5 <= len(unassigned5) <= _COMBO_5_MAX_SEGMENT:
 		pair_sums5 = {}
 		for i, idx_a in enumerate(unassigned5):
