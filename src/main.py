@@ -4,7 +4,7 @@ from dataset_detector import detect_profile
 from normalize import data_normalize
 from issuers_assigner import assign_issuers
 from grouping import prepare_grouping_dataframe, run_grouping_pipeline
-from exporter import reorder_output_columns
+from exporter import reorder_output_columns, sort_output, save_output
 
 base_path = Path(__file__).resolve().parent.parent
 
@@ -22,6 +22,8 @@ def main():
     grouped_df = run_grouping_pipeline(grouping_ready_df, profile_name)
 
     output_df = reorder_output_columns(grouped_df)
+    output_df = sort_output(output_df)
+    save_output(output_df, input_path, base_path)
     return output_df.head()
 
 if __name__ == "__main__":
