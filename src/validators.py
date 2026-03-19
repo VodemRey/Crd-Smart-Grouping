@@ -52,7 +52,14 @@ def validate_unique_canonical_targets(target_columns):
 
 def validate_grouping_rules(grouping_rules):
 	"""Validate that grouping rules include mandatory column role mappings."""
-	mandatory_rule_keys = ["amount_column", "issuer_column", "segment_columns"]
+	mandatory_rule_keys = [
+		"amount_column",
+		"amount_cents_column",
+		"issuer_column",
+		"segment_columns",
+		"segment_stages",
+		"pass_pipeline",
+	]
 	missing_rule_keys = [
 		key for key in mandatory_rule_keys if key not in grouping_rules
 	]
@@ -65,16 +72,33 @@ def validate_grouping_rules(grouping_rules):
 	if not isinstance(grouping_rules["segment_columns"], list):
 		raise ValueError("Grouping rule 'segment_columns' must be a list")
 
+	if not isinstance(grouping_rules["segment_stages"], list):
+		raise ValueError("Grouping rule 'segment_stages' must be a list")
+
+	if not isinstance(grouping_rules["pass_pipeline"], list):
+		raise ValueError("Grouping rule 'pass_pipeline' must be a list")
+
+	for stage in grouping_rules["segment_stages"]:
+		if "name" not in stage:
+			raise ValueError("Each segment stage must have a 'name'")
+		if "require_issuer" not in stage:
+			raise ValueError("Each segment stage must define 'require_issuer'")
+
+	for pipeline_step in grouping_rules["pass_pipeline"]:
+		if "name" not in pipeline_step:
+			raise ValueError("Each pass_pipeline step must have a 'name'")
+
 
 def validate_grouping_input_columns(dataframe, grouping_rules):
 	"""Validate that dataframe has all required columns from grouping rules."""
 	validate_grouping_rules(grouping_rules)
 
 	amount_column = grouping_rules["amount_column"]
+	amount_cents_column = grouping_rules["amount_cents_column"]
 	issuer_column = grouping_rules["issuer_column"]
 	segment_columns = grouping_rules["segment_columns"]
 
-	required_columns = [amount_column, issuer_column] + segment_columns
+	required_columns = [amount_column, amount_cents_column, issuer_column] + segment_columns
 	validate_required_columns(
 		dataframe,
 		required_columns,

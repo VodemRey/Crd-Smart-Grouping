@@ -1,5 +1,7 @@
 """Normalize input data into canonical grouping columns."""
 
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+
 import pandas as pd
 
 from profiles import PROFILES
@@ -45,6 +47,64 @@ def _apply_profile_normalization_rules(normalized_df, profile_rules):
     normalized_df.loc[positive_mask, amount_column] = amount_numeric.loc[positive_mask].abs()
     normalized_df.loc[negative_mask, amount_column] = -amount_numeric.loc[negative_mask].abs()
 
+    return normalized_df
+
+
+def _parse_amount_to_cents(value):
+    """Convert one raw amount value to integer cents using decimal-safe parsing."""
+    if pd.isna(value):
+        return pd.NA
+
+    if isinstance(value, str):
+        text_value = value.strip()
+        if text_value == "":
+            return pd.NA
+    else:
+        text_value = str(value).strip()
+
+    is_parentheses_negative = text_value.startswith("(") and text_value.endswith(")")
+    if is_parentheses_negative:
+        text_value = text_value[1:-1]
+
+    text_value = text_value.replace(",", "")
+    text_value = text_value.replace("$", "")
+    text_value = text_value.replace(" ", "")
+
+    if text_value in {"", "+", "-", "."}:
+        return pd.NA
+
+    try:
+        decimal_value = Decimal(text_value)
+    except InvalidOperation:
+        return pd.NA
+
+    if is_parentheses_negative:
+        decimal_value = -decimal_value
+
+    cents_value = (decimal_value * Decimal("100")).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP
+    )
+    cents_int = int(cents_value)
+
+    int64_min = -(2**63)
+    int64_max = 2**63 - 1
+    if cents_int < int64_min or cents_int > int64_max:
+        raise ValueError("Amount value exceeds supported Int64 cents range")
+
+    return cents_int
+
+
+def _add_amount_cents_column(normalized_df, amount_column="gr_amount", cents_column="gr_amount_cents"):
+    """Add universal integer-cents amount column for grouping calculations."""
+    if amount_column not in normalized_df.columns:
+        return normalized_df
+
+    amount_cents_series = normalized_df[amount_column].apply(_parse_amount_to_cents)
+    normalized_df[cents_column] = pd.Series(
+        amount_cents_series,
+        index=normalized_df.index,
+        dtype="Int64",
+    )
     return normalized_df
 
 
@@ -100,6 +160,7 @@ def data_normalize(entry_df, keys_df, profile_name):
 
     profile_rules = profile_data.get("normalization_rules", {})
     normalized_df = _apply_profile_normalization_rules(normalized_df, profile_rules)
+    normalized_df = _add_amount_cents_column(normalized_df)
 
     # Put newly added canonical columns at the beginning, preserving source columns.
     if added_columns:

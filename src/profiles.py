@@ -30,8 +30,25 @@ ITEMS_STATUS_PROFILE = {
     },
     "grouping_rules": {
         "amount_column": "gr_amount",
+        "amount_cents_column": "gr_amount_cents",
         "issuer_column": "gr_assigned_issuer",
         "segment_columns": ["gr_currency", "gr_reconciliation_group"],
+        "tolerance_cents": 2,
+        "segment_stages": [
+            {
+                "name": "a_assigned_only",
+                "require_issuer": True,
+            },
+            {
+                "name": "bc_mixed_remaining",
+                "require_issuer": False,
+            },
+        ],
+        "pass_pipeline": [
+            {"name": "pair_exact", "enabled": True},
+            {"name": "triple_balanced", "enabled": True},
+            {"name": "combo_4_5", "enabled": True},
+        ],
         "require_at_least_one_l_in_group": {
             "enabled": True,
             "item_type_column": "gr_item_type",
@@ -65,8 +82,25 @@ CRYSTAL_OPEN_ITEMS_PROFILE = {
     },
     "grouping_rules": {
         "amount_column": "gr_amount",
+        "amount_cents_column": "gr_amount_cents",
         "issuer_column": "gr_assigned_issuer",
         "segment_columns": ["gr_currency", "gr_reconciliation_group"],
+        "tolerance_cents": 2,
+        "segment_stages": [
+            {
+                "name": "a_assigned_only",
+                "require_issuer": True,
+            },
+            {
+                "name": "bc_mixed_remaining",
+                "require_issuer": False,
+            },
+        ],
+        "pass_pipeline": [
+            {"name": "pair_exact", "enabled": True},
+            {"name": "triple_balanced", "enabled": True},
+            {"name": "combo_4_5", "enabled": True},
+        ],
         "require_at_least_one_l_in_group": {
             "enabled": True,
             "item_type_column": "gr_item_type",

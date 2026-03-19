@@ -26,3 +26,7 @@ class Config:
         "fund_name",
         "reconciliation_group",
     ]
+
+    # Grouping defaults
+    GROUPING_TOLERANCE_CENTS = 2
+    GROUPING_MAX_GROUP_SIZE = 10
