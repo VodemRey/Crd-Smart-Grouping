@@ -3,6 +3,7 @@ from loader import get_files, read_files
 from dataset_detector import detect_profile
 from normalize import data_normalize
 from issuers_assigner import assign_issuers
+from grouping import prepare_grouping_dataframe
  
 base_path = Path(__file__).resolve().parent.parent
 
@@ -17,8 +18,9 @@ def main():
     normalized_df, normalized_keys_df = data_normalize(entry_df, keys_df, profile_name)
 
     assigned_issers_df = assign_issuers(normalized_df, normalized_keys_df)
+    grouping_ready_df = prepare_grouping_dataframe(assigned_issers_df, profile_name)
 
-    return assigned_issers_df.head()
+    return grouping_ready_df.head()
 
 if __name__ == "__main__":
     print(main())
