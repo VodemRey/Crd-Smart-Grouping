@@ -28,6 +28,13 @@ ITEMS_STATUS_PROFILE = {
             "negative_prefixes": ["lcr", "sdr"],
         }
     },
+    "grouping_rules": {
+        "require_at_least_one_l_in_group": {
+            "enabled": True,
+            "item_type_column": "gr_item_type",
+            "l_prefix": "l",
+        }
+    },
 }
 
 CRYSTAL_OPEN_ITEMS_PROFILE = {
@@ -51,6 +58,13 @@ CRYSTAL_OPEN_ITEMS_PROFILE = {
             "amount_column": "gr_amount",
             "positive_prefixes": ["ldr", "scr"],
             "negative_prefixes": ["lcr", "sdr"],
+        }
+    },
+    "grouping_rules": {
+        "require_at_least_one_l_in_group": {
+            "enabled": True,
+            "item_type_column": "gr_item_type",
+            "l_prefix": "l",
         }
     },
 }
