@@ -29,6 +29,9 @@ ITEMS_STATUS_PROFILE = {
         }
     },
     "grouping_rules": {
+        "amount_column": "gr_amount",
+        "issuer_column": "gr_assigned_issuer",
+        "segment_columns": ["gr_currency", "gr_reconciliation_group"],
         "require_at_least_one_l_in_group": {
             "enabled": True,
             "item_type_column": "gr_item_type",
@@ -61,6 +64,9 @@ CRYSTAL_OPEN_ITEMS_PROFILE = {
         }
     },
     "grouping_rules": {
+        "amount_column": "gr_amount",
+        "issuer_column": "gr_assigned_issuer",
+        "segment_columns": ["gr_currency", "gr_reconciliation_group"],
         "require_at_least_one_l_in_group": {
             "enabled": True,
             "item_type_column": "gr_item_type",

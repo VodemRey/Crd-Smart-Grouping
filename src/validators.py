@@ -48,3 +48,35 @@ def validate_unique_canonical_targets(target_columns):
 		raise ValueError(
 			f"Profile mapping contains non-unique canonical targets: {duplicates_str}"
 		)
+
+
+def validate_grouping_rules(grouping_rules):
+	"""Validate that grouping rules include mandatory column role mappings."""
+	mandatory_rule_keys = ["amount_column", "issuer_column", "segment_columns"]
+	missing_rule_keys = [
+		key for key in mandatory_rule_keys if key not in grouping_rules
+	]
+	if missing_rule_keys:
+		missing_keys_str = ", ".join(missing_rule_keys)
+		raise ValueError(
+			f"Grouping rules are missing required settings: {missing_keys_str}"
+		)
+
+	if not isinstance(grouping_rules["segment_columns"], list):
+		raise ValueError("Grouping rule 'segment_columns' must be a list")
+
+
+def validate_grouping_input_columns(dataframe, grouping_rules):
+	"""Validate that dataframe has all required columns from grouping rules."""
+	validate_grouping_rules(grouping_rules)
+
+	amount_column = grouping_rules["amount_column"]
+	issuer_column = grouping_rules["issuer_column"]
+	segment_columns = grouping_rules["segment_columns"]
+
+	required_columns = [amount_column, issuer_column] + segment_columns
+	validate_required_columns(
+		dataframe,
+		required_columns,
+		"Grouping input data",
+	)
