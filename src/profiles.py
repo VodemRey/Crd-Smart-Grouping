@@ -19,6 +19,15 @@ ITEMS_STATUS_PROFILE = {
         "Reconciliation": "gr_reconciliation_group",
     },
     "reference_fields": ["gr_reference_data"],
+    "normalization_rules": {
+        "amount_sign_from_item_type": {
+            "enabled": True,
+            "item_type_column": "gr_item_type",
+            "amount_column": "gr_amount",
+            "positive_prefixes": ["ldr", "scr"],
+            "negative_prefixes": ["lcr", "sdr"],
+        }
+    },
 }
 
 CRYSTAL_OPEN_ITEMS_PROFILE = {
@@ -35,6 +44,15 @@ CRYSTAL_OPEN_ITEMS_PROFILE = {
         "Set ID": "gr_reconciliation_group",
     },
     "reference_fields": ["gr_reference_data"],
+    "normalization_rules": {
+        "amount_sign_from_item_type": {
+            "enabled": True,
+            "item_type_column": "gr_item_type",
+            "amount_column": "gr_amount",
+            "positive_prefixes": ["ldr", "scr"],
+            "negative_prefixes": ["lcr", "sdr"],
+        }
+    },
 }
 
 PROFILES = {

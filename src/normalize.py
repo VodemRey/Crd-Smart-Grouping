@@ -1,5 +1,7 @@
 """Normalize input data into canonical grouping columns."""
 
+import pandas as pd
+
 from profiles import PROFILES
 from validators import (
     validate_keys_required_columns,
@@ -8,13 +10,52 @@ from validators import (
 )
 
 
+def _apply_profile_normalization_rules(normalized_df, profile_rules):
+    """Apply profile-specific normalization rules to canonical columns."""
+    amount_sign_rule = profile_rules.get("amount_sign_from_item_type", {})
+    if not amount_sign_rule.get("enabled"):
+        return normalized_df
+
+    item_type_column = amount_sign_rule.get("item_type_column", "gr_item_type")
+    amount_column = amount_sign_rule.get("amount_column", "gr_amount")
+    if item_type_column not in normalized_df.columns or amount_column not in normalized_df.columns:
+        return normalized_df
+
+    positive_prefixes = {
+        prefix.lower() for prefix in amount_sign_rule.get("positive_prefixes", [])
+    }
+    negative_prefixes = {
+        prefix.lower() for prefix in amount_sign_rule.get("negative_prefixes", [])
+    }
+
+    normalized_df[item_type_column] = (
+        normalized_df[item_type_column]
+        .astype("string")
+        .fillna("")
+        .str.lower()
+        .str.replace(r"\s+", "", regex=True)
+    )
+
+    amount_numeric = pd.to_numeric(normalized_df[amount_column], errors="coerce")
+    item_type_prefix = normalized_df[item_type_column].str[:3]
+
+    positive_mask = item_type_prefix.isin(positive_prefixes)
+    negative_mask = item_type_prefix.isin(negative_prefixes)
+
+    normalized_df.loc[positive_mask, amount_column] = amount_numeric.loc[positive_mask].abs()
+    normalized_df.loc[negative_mask, amount_column] = -amount_numeric.loc[negative_mask].abs()
+
+    return normalized_df
+
+
 def data_normalize(entry_df, keys_df, profile_name):
     """Normalize entry data and keys reference data for downstream matching."""
     validate_profile_name(profile_name, PROFILES)
 
+    profile_data = PROFILES[profile_name]
     normalized_df = entry_df.copy()
     normalized_keys_df = keys_df.copy()
-    column_mapping = PROFILES[profile_name]["column_mapping"]
+    column_mapping = profile_data["column_mapping"]
 
     validate_keys_required_columns(normalized_keys_df)
 
@@ -56,6 +97,9 @@ def data_normalize(entry_df, keys_df, profile_name):
         )
         normalized_df["gr_reference_data"] = reference_series
         added_columns.append("gr_reference_data")
+
+    profile_rules = profile_data.get("normalization_rules", {})
+    normalized_df = _apply_profile_normalization_rules(normalized_df, profile_rules)
 
     # Put newly added canonical columns at the beginning, preserving source columns.
     if added_columns:
