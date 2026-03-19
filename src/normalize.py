@@ -50,6 +50,53 @@ def _apply_profile_normalization_rules(normalized_df, profile_rules):
     return normalized_df
 
 
+def _parse_raw_amount(value):
+    """Parse one raw amount value to a plain float, handling common formatting.
+
+    Supports: leading/trailing spaces, currency symbols ($), thousands
+    separators (commas), accounting negatives in parentheses (1,234.56),
+    and values that are already numeric. Returns pd.NA for empty or
+    unparseable input.
+    """
+    if pd.isna(value):
+        return pd.NA
+
+    if isinstance(value, (int, float)):
+        return pd.NA if (isinstance(value, float) and value != value) else float(value)
+
+    text_value = str(value).strip()
+    if not text_value:
+        return pd.NA
+
+    is_negative = text_value.startswith("(") and text_value.endswith(")")
+    if is_negative:
+        text_value = text_value[1:-1]
+
+    text_value = text_value.replace(",", "").replace("$", "").replace(" ", "")
+
+    if text_value in {"", "+", "-", "."}:
+        return pd.NA
+
+    try:
+        numeric = float(Decimal(text_value))
+    except InvalidOperation:
+        return pd.NA
+
+    return -numeric if is_negative else numeric
+
+
+def _clean_amount_column(df, amount_column="gr_amount"):
+    """Replace raw formatted amount strings with clean float values in-place.
+
+    Must run before sign normalization so that pd.to_numeric receives
+    already-clean values and does not silently coerce them to NaN.
+    """
+    if amount_column not in df.columns:
+        return df
+    df[amount_column] = df[amount_column].apply(_parse_raw_amount)
+    return df
+
+
 def _parse_amount_to_cents(value):
     """Convert one raw amount value to integer cents using decimal-safe parsing."""
     if pd.isna(value):
@@ -159,6 +206,7 @@ def data_normalize(entry_df, keys_df, profile_name):
         added_columns.append("gr_reference_data")
 
     profile_rules = profile_data.get("normalization_rules", {})
+    normalized_df = _clean_amount_column(normalized_df)
     normalized_df = _apply_profile_normalization_rules(normalized_df, profile_rules)
     normalized_df = _add_amount_cents_column(normalized_df)
 
