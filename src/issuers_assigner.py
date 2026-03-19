@@ -57,7 +57,20 @@ def assign_issuers(normalized_df, keys_df):
             keys_found_values.append("not found")
             continue
 
-        assigned_issuers.append(matched_pairs[0][1])
+        # Tiebreaker: most unique keys -> largest total key chars -> lex issuer name
+        issuer_scores = {}
+        for key_text, issuer_value in matched_pairs:
+            issuer_str = str(issuer_value)
+            if issuer_str not in issuer_scores:
+                issuer_scores[issuer_str] = {"keys": set(), "total_len": 0}
+            if key_text not in issuer_scores[issuer_str]["keys"]:
+                issuer_scores[issuer_str]["keys"].add(key_text)
+                issuer_scores[issuer_str]["total_len"] += len(key_text)
+        best_issuer = min(
+            issuer_scores,
+            key=lambda i: (-len(issuer_scores[i]["keys"]), -issuer_scores[i]["total_len"], i),
+        )
+        assigned_issuers.append(best_issuer)
 
         ordered_unique_keys = []
         for key_text, _ in matched_pairs:

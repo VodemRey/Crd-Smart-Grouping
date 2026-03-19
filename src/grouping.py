@@ -17,6 +17,9 @@ GROUPING_STAGE_COLUMN = "grouping_stage"
 # are skipped in the 5-row sub-pass of combo_4_5 to prevent stalls.
 _COMBO_5_MAX_SEGMENT = 200
 
+# Safety ceiling for the O(n^2) 4-row pair-of-pairs search.
+_COMBO_4_MAX_SEGMENT = 500
+
 
 def _make_pass_result(pass_config, df, next_group_number, groups_found, rows_used, segment_size):
 	"""Build the standard pass result dict expected by the orchestrator."""
@@ -215,7 +218,7 @@ def _run_combo_4_5(df, segment_indexes, context, pass_config, next_group_number,
 		idx for idx in _get_unassigned_in_segment(df, segment_indexes)
 		if not pd.isna(df.at[idx, cents_col])
 	]
-	if len(unassigned4) >= 4:
+	if 4 <= len(unassigned4) <= _COMBO_4_MAX_SEGMENT:
 		pair_sums4 = {}
 		for i, idx_a in enumerate(unassigned4):
 			v_a = int(df.at[idx_a, cents_col])
@@ -412,38 +415,100 @@ def _get_unassigned_mask(grouped_input_df, group_column=GROUP_NUMBER_COLUMN):
 	return grouped_input_df[group_column].isna()
 
 
-def _build_stage_mask(grouped_input_df, context, stage_config):
-	"""Build row mask for one stage based on issuer requirements."""
-	issuer_column = context["issuer_column"]
-	require_issuer = stage_config.get("require_issuer", False)
-
-	issuer_present_mask = (
+def _has_issuer_mask(grouped_input_df, issuer_column):
+	"""Return boolean mask for rows where the issuer field is non-empty."""
+	return (
 		grouped_input_df[issuer_column]
 		.astype("string")
 		.fillna("")
 		.str.strip()
 		.ne("")
 	)
-	if require_issuer:
-		return issuer_present_mask
-	# Non-required issuer stages process all remaining unassigned rows,
-	# enabling B+C grouping (issuer + NaN and NaN + NaN candidates).
+
+
+def _build_stage_mask(grouped_input_df, context, stage_config):
+	"""Legacy mask builder for stages using the require_issuer flag."""
+	issuer_column = context["issuer_column"]
+	if stage_config.get("require_issuer", False):
+		return _has_issuer_mask(grouped_input_df, issuer_column)
 	return pd.Series(True, index=grouped_input_df.index, dtype=bool)
 
 
 def _iter_segment_indexes(grouped_input_df, context, stage_config):
-	"""Yield row index groups for one stage segmented by configured keys."""
+	"""Yield row index lists for one stage.
+
+	Mode "A"  — assigned (B) rows only, segmented by (issuer, currency, recon).
+	Mode "BC" — for each issuer: its remaining B rows + all C rows that share
+	            the same (currency, recon).  One segment per issuer x seg-key.
+	Mode "CC" — unassigned (C) rows only, segmented by (currency, recon).
+	Legacy    — falls back to old require_issuer behaviour when 'mode' absent.
+	"""
 	segment_columns = context["segment_columns"]
+	issuer_column = context["issuer_column"]
+	mode = stage_config.get("mode")
 	unassigned_mask = _get_unassigned_mask(grouped_input_df)
-	stage_mask = _build_stage_mask(grouped_input_df, context, stage_config)
-	base_mask = unassigned_mask & stage_mask
 
-	eligible_df = grouped_input_df.loc[base_mask]
-	if eligible_df.empty:
-		return
+	if mode == "A":
+		b_mask = unassigned_mask & _has_issuer_mask(grouped_input_df, issuer_column)
+		eligible_df = grouped_input_df.loc[b_mask]
+		if eligible_df.empty:
+			return
+		group_cols = [issuer_column] + segment_columns
+		for _, seg_df in eligible_df.groupby(group_cols, dropna=False, sort=True):
+			yield list(seg_df.index)
 
-	for _, segment_df in eligible_df.groupby(segment_columns, dropna=False, sort=True):
-		yield list(segment_df.index)
+	elif mode == "BC":
+		him = _has_issuer_mask(grouped_input_df, issuer_column)
+		b_df = grouped_input_df.loc[unassigned_mask & him]
+		c_df = grouped_input_df.loc[unassigned_mask & ~him]
+		if b_df.empty:
+			return
+		issuers = sorted(b_df[issuer_column].astype("string").dropna().unique())
+		for issuer in issuers:
+			issuer_str = str(issuer).strip()
+			if not issuer_str:
+				continue
+			issuer_b = b_df[
+				b_df[issuer_column].astype("string").str.strip() == issuer_str
+			]
+			if issuer_b.empty:
+				continue
+			for seg_keys, b_seg_df in issuer_b.groupby(
+				segment_columns, dropna=False, sort=True
+			):
+				if not c_df.empty:
+					keys_tuple = (seg_keys,) if len(segment_columns) == 1 else seg_keys
+					c_mask = pd.Series(True, index=c_df.index)
+					for col, key in zip(segment_columns, keys_tuple):
+						if pd.isna(key):
+							c_mask &= c_df[col].isna()
+						else:
+							c_mask &= c_df[col] == key
+					c_seg_df = c_df.loc[c_mask]
+				else:
+					c_seg_df = c_df  # empty
+				seg_idxs = list(b_seg_df.index) + list(c_seg_df.index)
+				if len(seg_idxs) >= 2:
+					yield seg_idxs
+
+	elif mode == "CC":
+		him = _has_issuer_mask(grouped_input_df, issuer_column)
+		c_mask = unassigned_mask & ~him
+		eligible_df = grouped_input_df.loc[c_mask]
+		if eligible_df.empty:
+			return
+		for _, seg_df in eligible_df.groupby(segment_columns, dropna=False, sort=True):
+			yield list(seg_df.index)
+
+	else:
+		# Legacy fallback: require_issuer flag
+		stage_mask = _build_stage_mask(grouped_input_df, context, stage_config)
+		base_mask = unassigned_mask & stage_mask
+		eligible_df = grouped_input_df.loc[base_mask]
+		if eligible_df.empty:
+			return
+		for _, seg_df in eligible_df.groupby(segment_columns, dropna=False, sort=True):
+			yield list(seg_df.index)
 
 
 def run_grouping_pipeline(grouped_input_df, profile_name):

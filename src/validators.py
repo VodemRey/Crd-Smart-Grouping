@@ -81,8 +81,8 @@ def validate_grouping_rules(grouping_rules):
 	for stage in grouping_rules["segment_stages"]:
 		if "name" not in stage:
 			raise ValueError("Each segment stage must have a 'name'")
-		if "require_issuer" not in stage:
-			raise ValueError("Each segment stage must define 'require_issuer'")
+		if "mode" not in stage and "require_issuer" not in stage:
+			raise ValueError("Each segment stage must define 'mode' or 'require_issuer'")
 
 	for pipeline_step in grouping_rules["pass_pipeline"]:
 		if "name" not in pipeline_step:

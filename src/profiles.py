@@ -35,14 +35,9 @@ ITEMS_STATUS_PROFILE = {
         "segment_columns": ["gr_currency", "gr_reconciliation_group"],
         "tolerance_cents": 2,
         "segment_stages": [
-            {
-                "name": "a_assigned_only",
-                "require_issuer": True,
-            },
-            {
-                "name": "bc_mixed_remaining",
-                "require_issuer": False,
-            },
+            {"name": "A",  "mode": "A"},
+            {"name": "BC", "mode": "BC"},
+            {"name": "CC", "mode": "CC"},
         ],
         "pass_pipeline": [
             {"name": "pair_exact", "enabled": True},
@@ -87,14 +82,9 @@ CRYSTAL_OPEN_ITEMS_PROFILE = {
         "segment_columns": ["gr_currency", "gr_reconciliation_group"],
         "tolerance_cents": 2,
         "segment_stages": [
-            {
-                "name": "a_assigned_only",
-                "require_issuer": True,
-            },
-            {
-                "name": "bc_mixed_remaining",
-                "require_issuer": False,
-            },
+            {"name": "A",  "mode": "A"},
+            {"name": "BC", "mode": "BC"},
+            {"name": "CC", "mode": "CC"},
         ],
         "pass_pipeline": [
             {"name": "pair_exact", "enabled": True},
